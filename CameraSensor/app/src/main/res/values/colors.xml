@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black_text">#333</color>
+    <color name="text_green">#5DC9ED</color>
+    <color name="text_grey">#2A2D3E</color>
+    <color name="line">#dddddd</color>
+    <color name="blue">#006EBF</color>
+    <color name="blue1">#64B9E8</color>
+    <color name="blue2">#0084C4</color>
+    <color name="green">#21AC38</color>
+    <color name="bg_color">#F3F3F3</color>
+    <color name="red">#f00</color>
+    <color name="org">#fed300</color>
+    <color name="black_text1">#aa333333</color>
+    <color name="transparent2">#50000000</color>
+    <!-- QRCode -->
+    <color name="possible_result_points">#c0ffff00</color>
+    <color name="result_view">#b0000000</color>
+    <color name="transparent">#00000000</color>
+    <color name="viewfinder_frame">#ff000000</color>
+    <color name="viewfinder_laser">#ffff0000</color>
+    <color name="viewfinder_mask">#60000000</color>
+
+    <color name="camera_progress_three">#24ff00</color>
+    <color name="transparent_black_85">#DA000000</color>
+    <color name="black">#ff000000</color>
+</resources>
