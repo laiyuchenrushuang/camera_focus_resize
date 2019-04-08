@@ -4,12 +4,12 @@ import android.app.Application;
 import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 
-public class SweetApplication extends Application {
+public class MyApplication extends Application {
 
     public static int mScreenWidth = 0;
     public static int mScreenHeight = 0;
 
-    public static SweetApplication CONTEXT;
+    public static MyApplication CONTEXT;
 
     private Bitmap mCameraBitmap;
 
@@ -20,8 +20,8 @@ public class SweetApplication extends Application {
         // DisplayMetrics mDisplayMetrics = new DisplayMetrics();
         DisplayMetrics mDisplayMetrics = getApplicationContext().getResources()
                 .getDisplayMetrics();
-        SweetApplication.mScreenWidth = mDisplayMetrics.widthPixels;
-        SweetApplication.mScreenHeight = mDisplayMetrics.heightPixels;
+        MyApplication.mScreenWidth = mDisplayMetrics.widthPixels;
+        MyApplication.mScreenHeight = mDisplayMetrics.heightPixels;
 
         CONTEXT = this;
 

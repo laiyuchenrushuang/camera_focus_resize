@@ -10,6 +10,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -127,7 +129,10 @@ private String TAG = "lylog";
     };
 
     private void releasecamera() {
-        mSensorManager.unregisterListener(this, mSensor);
+        if (mSensorManager != null) {
+            mSensorManager.unregisterListener(this, mSensor);
+            mSensorManager = null;
+        }
         if (mCamera != null){
             mCamera.stopPreview();
             mCamera.cancelAutoFocus();
@@ -184,8 +189,8 @@ private String TAG = "lylog";
                 isFocusing = false;
                 Log.d(TAG, "onAutoFocus: ");
                 mCamera.setOneShotPreviewCallback(null);
-                setfocusViewIsGreen();
                 mCamera.cancelAutoFocus();
+                mMoveCameraFoucs.setFocused(mHandler);
             } else {
                 isFocusing = true;
                 mMoveCameraFoucs.setNoFocused();
@@ -195,7 +200,7 @@ private String TAG = "lylog";
     };
 
     private void setfocusViewIsGreen() {
-        mMoveCameraFoucs.setFocused();
+        mMoveCameraFoucs.setFocused(mHandler);
         try {
             Thread.sleep(500);
         } catch (InterruptedException e) {
@@ -204,6 +209,14 @@ private String TAG = "lylog";
         setMoveFocusViewVisble(false);
         isFocusing = true;
     }
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+
+        }
+    };
 
     private final Rect mPreviewRect = new Rect(150, 75, 260, 200);
     private void calculateTapArea(int x, int y, float areaMultiple, Rect rect) {

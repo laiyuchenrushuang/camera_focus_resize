@@ -6,15 +6,22 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.example.laiji.camerasensor.R;
 
 
+/**
+ * Created by l aiyu
+ */
+
 public class MoveCameraFoucs extends View {
+
 
     private Paint mPaint;
     private Bitmap bitmap;
@@ -70,52 +77,57 @@ public class MoveCameraFoucs extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()){
-
             case MotionEvent.ACTION_DOWN:
+                Log.d("lylog", "onTouchEvent: ");
+                setVisibility(MoveCameraFoucs.VISIBLE);
                 float rawX = event.getRawX();
                 float rawY = event.getRawY();
                 bitmapX=rawX-bitmapWidth/2;
                 bitmapY=rawY-bitmapHeight/2;
+                setNoFocused();
                 break;
         }
-
         new Thread(new Runnable() {
             @Override
             public void run() {
-                for (int i = 0; i <30 ; i++) {
-                    degrees +=2;
-                    postInvalidate();
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                for (int i = 0; i <30 ; i++) {
-                    degrees -=2;
-                    postInvalidate();
-                    try {
-                        Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                degrees=0;
-                try {
-                    Thread.sleep(1000);
-                    resetFocus();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+                animationViewShow();
             }
         }).start();
         return super.onTouchEvent(event);
+    }
+
+    private void animationViewShow() {
+        for (int i = 0; i <30 ; i++) {
+            degrees +=2;
+            postInvalidate();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        for (int i = 0; i <30 ; i++) {
+            degrees -=2;
+            postInvalidate();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        degrees=0;
+        try {
+            Thread.sleep(1000);
+            resetFocus();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void resetFocus() {
@@ -125,9 +137,18 @@ public class MoveCameraFoucs extends View {
         postInvalidate();
     }
 
-    public void setFocused(){
+    public void setFocused( Handler handler){
         bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.camera_focus_show);
         postInvalidate();
+
+            handler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    setNoFocused();
+                }
+            }, 2000);
+
+
     }
     public void setNoFocused(){
         bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.camera_show);
