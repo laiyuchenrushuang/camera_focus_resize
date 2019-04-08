@@ -17,7 +17,6 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 
 import com.example.laiji.camerasensor.view.MoveCameraFoucs;
 import com.example.laiji.camerasensor.view.ResizeAbleSurfaceView;
@@ -37,6 +36,7 @@ Camera mCamera;
 ResizeAbleSurfaceView mResizeAbleSurfaceView;
 private SensorManager mSensorManager;
 Calendar mCalendar;
+List<Camera.Size> listSize;
 
 private String TAG = "lylog";
     private int mPrewidth;
@@ -70,8 +70,10 @@ private String TAG = "lylog";
             mParameters = mCamera.getParameters();
         }
         mParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+        listSize = mParameters.getSupportedPreviewSizes();
+        //可以根据list的size取最佳previewsize去适配surfaceview,这里为了方便取list的最大值，即list.get(0)
+        mParameters.setPreviewSize(listSize.get(0).width,listSize.get(0).height);
         mCamera.setParameters(mParameters);
-        Log.d(TAG, "initCamera: w = "+mParameters.getPreviewSize().width + " h = "+mParameters.getPreviewSize().height);
         mPrewidth = mParameters.getPreviewSize().width;
         mPreHeight =mParameters.getPreviewSize().height;
         startPreView();
@@ -95,14 +97,12 @@ private String TAG = "lylog";
         mHolder = mSurface.getHolder();
         mHolder.addCallback(mSurfaceCallBack);
         mResizeAbleSurfaceView = findViewById(R.id.surfaceView);
-
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(Activity.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);// TYPE_GRAV
 
         mSensorManager.registerListener(this, mSensor,
                 SensorManager.SENSOR_DELAY_NORMAL);
 
-        setMoveFocusViewVisble(false);
     }
 
     private SurfaceHolder.Callback mSurfaceCallBack = new SurfaceHolder.Callback(){
@@ -116,10 +116,25 @@ private String TAG = "lylog";
         public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
             Log.d(TAG, "surfaceChanged: wight = "+width + "  height"+height);
             //处理surface和presize不一致的问题
-            if (width != mPrewidth || height !=mPreHeight) {
+            Log.d(TAG, "surfaceChanged: Prewight = "+mPrewidth + "  Preheight"+mPreHeight);
+            if (width <= mPrewidth && height <=mPreHeight) {
                 mResizeAbleSurfaceView.resize(mPrewidth,mPreHeight);
             }
-
+            if (width >= mPrewidth || height >= mPreHeight) {
+                int newW,newH;
+                float rateSurface = (float)((float)width/height);
+                float ratePre = (float)((float)mPrewidth/mPreHeight);
+                if (rateSurface > ratePre) {
+                    //证明宽比高相对大
+                    newH = height;
+                    newW = (int) (ratePre * height);
+                }else {
+                    newH = (int) ( width/ratePre);
+                    newW = width;
+                }
+                Log.d(TAG, "surfaceChanged: newW ="+newW + " newH"+newH);
+                mResizeAbleSurfaceView.resize(newW,newH);
+            }
         }
 
         @Override
@@ -168,9 +183,7 @@ private String TAG = "lylog";
             }
         }
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            Log.d(TAG, "onTouchEvent: ACTION_DOWN");
             isFocusing = false;
-            setMoveFocusViewVisble(true);
         }
 
         try {
@@ -187,7 +200,6 @@ private String TAG = "lylog";
         public void onAutoFocus(boolean success, Camera camera) {
             if (success) {
                 isFocusing = false;
-                Log.d(TAG, "onAutoFocus: ");
                 mCamera.setOneShotPreviewCallback(null);
                 mCamera.cancelAutoFocus();
                 mMoveCameraFoucs.setFocused(mHandler);
@@ -206,7 +218,6 @@ private String TAG = "lylog";
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-        setMoveFocusViewVisble(false);
         isFocusing = true;
     }
 
@@ -275,8 +286,6 @@ private String TAG = "lylog";
                 int px = Math.abs(mX - x);
                 int py = Math.abs(mY - y);
                 int pz = Math.abs(mZ - z);
-//                Log.d(TAG, "pX:" + px + "  pY:" + py + "  pZ:" + pz + "    stamp:"
-//                        + stamp + "  second:" + second);
                 double value = Math.sqrt(px * px + py * py + pz * pz);
                 if (value > 1.4) {
 //                    textviewF.setText("检测手机在移动..");
@@ -294,6 +303,13 @@ private String TAG = "lylog";
                     if (canFocusIn) {
                         if (stamp - lastStaticStamp > DELEY_DURATION) {
                             //移动后静止一段时间，可以发生对焦行为
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d(TAG, "run: onSensorChanged");
+                                    mMoveCameraFoucs.animationViewShow1();
+                                }
+                            }).start();
                             if (!isFocusing) {
                                 canFocusIn = false;
 //                                onCameraFocus();
@@ -303,6 +319,8 @@ private String TAG = "lylog";
                                 }
 //                                Log.i(TAG,"mobile focusing");
                             }
+                        }else {
+                            Log.d(TAG, "onSensorChanged: else");
                         }
                     }
 
@@ -346,17 +364,4 @@ private String TAG = "lylog";
 
         }
     }
-    public void setMoveFocusViewVisble(boolean isshow){
-        Log.d(TAG, "setMoveFocusViewVisble: isshow = "+isshow);
-        if (isshow) {
-            mMoveCameraFoucs.setVisibility(View.VISIBLE);
-        }else {
-            mMoveCameraFoucs.setVisibility(View.GONE);
-        }
-    }
-
-    public void resetFocusUI(){
-        mMoveCameraFoucs.resetFocus();
-    }
-
 }

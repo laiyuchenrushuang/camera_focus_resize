@@ -91,12 +91,14 @@ public class MoveCameraFoucs extends View {
             @Override
             public void run() {
                 animationViewShow();
+                resetFocus();
             }
         }).start();
         return super.onTouchEvent(event);
     }
 
-    private void animationViewShow() {
+    public void animationViewShow() {
+        degrees = 0;
         for (int i = 0; i <30 ; i++) {
             degrees +=2;
             postInvalidate();
@@ -122,19 +124,17 @@ public class MoveCameraFoucs extends View {
         }
 
         degrees=0;
-        try {
-            Thread.sleep(1000);
-            resetFocus();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public void resetFocus() {
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         bitmapX=getWidth()/2-bitmapWidth/2;
         bitmapY=getHeight()/2-bitmapHeight/2;
         setNoFocused();
-        postInvalidate();
     }
 
     public void setFocused( Handler handler){
@@ -153,5 +153,19 @@ public class MoveCameraFoucs extends View {
     public void setNoFocused(){
         bitmap = BitmapFactory.decodeResource(mContext.getResources(), R.drawable.camera_show);
         postInvalidate();
+    }
+
+    public void animationViewShow1() {
+        Log.d("lylog", "animationViewShow1: ");
+        for (int i = 0; i <30 ; i++) {
+            degrees +=2;
+            postInvalidate();
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        degrees = 0;
     }
 }
