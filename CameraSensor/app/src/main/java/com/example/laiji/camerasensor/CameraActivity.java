@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -171,12 +172,38 @@ private String TAG = "lylog";
     public boolean onTouchEvent(final MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_UP) {
 
-
+//感光区的设计，我觉得还是重点
             try{
-                List<Camera.Area> mFocusArea = new ArrayList<Camera.Area>();
-                mFocusArea.add(new Camera.Area(new Rect(), 1));
-                calculateTapArea((int)event.getX(),(int)event.getY(),1f,mFocusArea.get(0).rect);
-                mParameters.setFocusAreas(mFocusArea);
+//                mCamera.cancelAutoFocus();
+//                List<Camera.Area> mFocusArea = new ArrayList<Camera.Area>();
+//                mFocusArea.add(new Camera.Area(new Rect(), 1));
+//                calculateTapArea((int)event.getX(),(int)event.getY(),1f,mFocusArea.get(0).rect);
+
+                DisplayMetrics mDisplayMetrics = this.getApplicationContext().getResources()
+                        .getDisplayMetrics();
+                int mScreenWidth = mDisplayMetrics.widthPixels;
+                int mScreenheight = mDisplayMetrics.heightPixels;
+                List<Camera.Area> areas = new ArrayList<Camera.Area>();
+                Rect rect = new Rect((int)event.getX() - 100, (int)event.getY() - 100, (int)event.getX() + 100, (int)event.getY() + 100);
+                int left = rect.left * 2000 / mScreenWidth - 1000;
+                int top = rect.top * 2000 / mScreenheight - 1000;
+                int right = rect.right * 2000 / mScreenWidth - 1000;
+                int bottom = rect.bottom * 2000 / mScreenheight - 1000;
+                // 如果超出了(-1000,1000)到(1000, 1000)的范围，则会导致相机崩溃
+                left = left < -1000 ? -1000 : left;
+                top = top < -1000 ? -1000 : top;
+                right = right > 1000 ? 1000 : right;
+                bottom = bottom > 1000 ? 1000 : bottom;
+                Rect area1 = new Rect(left, top, right, bottom);
+                //只有一个感光区，直接设置权重为1000了
+                areas.add(new Camera.Area(area1, 1000));
+                mParameters.setFocusMode(mParameters.FOCUS_MODE_AUTO);
+                mParameters.setMeteringAreas(areas);
+
+
+
+
+                mParameters.setFocusAreas(areas);
                 mCamera.setParameters(mParameters);
             }catch (Exception e){
                 e.printStackTrace();
@@ -229,7 +256,7 @@ private String TAG = "lylog";
         }
     };
 
-    private final Rect mPreviewRect = new Rect(150, 75, 260, 200);
+    private final Rect mPreviewRect = new Rect(100, 100, 300, 300);
     private void calculateTapArea(int x, int y, float areaMultiple, Rect rect) {
         int areaSize = (int) (getAreaSize() * areaMultiple);
         int left = clamp(x - areaSize / 2, mPreviewRect.left,
