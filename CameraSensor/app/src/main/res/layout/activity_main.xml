@@ -102,6 +102,7 @@
                         android:id="@+id/flashLight"
                         android:layout_width="45dp"
                         android:layout_height="40dp"
+                        android:onClick="btFlashLight"
                         android:background="@drawable/button_flashoff"
                         android:tag="off" />
                 </LinearLayout>

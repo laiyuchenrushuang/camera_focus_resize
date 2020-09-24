@@ -1,7 +1,9 @@
 package com.example.laiji.camerasensor;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import android.hardware.Camera;
@@ -9,20 +11,28 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.laiji.camerasensor.view.MoveCameraFoucs;
 import com.example.laiji.camerasensor.view.ResizeAbleSurfaceView;
 
 import java.io.IOException;
+import java.security.Permission;
+import java.security.Permissions;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -56,12 +66,72 @@ private String TAG = "lylog";
     public static final int STATUS_STATIC = 1;
     public static final int STATUS_MOVE = 2;
     private int STATUE = STATUS_NONE;
+    private ImageView flashLight;
+    @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);// 横屏
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            AppRequestPermissions();
+            finish();
+        }
+
         iniView();
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private void AppRequestPermissions() {
+
+        // String [] permission={};
+        final List<String> permission = new ArrayList<>();
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            permission.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+        }
+        if (checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permission.add(Manifest.permission.CAMERA);
+        }
+
+        if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            permission.add(Manifest.permission.READ_PHONE_STATE);
+        }
+        if (permission.size() > 0) {
+            ActivityCompat.requestPermissions(this, permission.toArray(new String[permission.size()]), 1);
+
+        }
+
+
+    }
+
+    public void btFlashLight(View view) {
+            Camera.Parameters params = mCamera.getParameters();
+            String tag = flashLight.getTag() + "";
+            String msg = "";
+            msg = "";
+            if (tag.equals("off")) {// 3
+                flashLight.setTag("on");
+                flashLight.setBackgroundResource(R.drawable.button_flashautoon);
+                params.setFlashMode(Camera.Parameters.FLASH_MODE_ON);
+
+                msg = "闪光灯";
+
+            } else if (tag.equals("on")) {// 2
+                flashLight.setTag("always");
+                flashLight.setBackgroundResource(R.drawable.button_flashon);
+                params.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+                msg = "常亮";
+
+            } else if (tag.equals("always")) {// 1
+                flashLight.setTag("off");
+                params.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                flashLight.setBackgroundResource(R.drawable.button_flashoff);
+                msg = "关闭";
+            }
+
+            mCamera.setParameters(params);
+            Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
     }
 
     private void initCamera() {
@@ -98,6 +168,7 @@ private String TAG = "lylog";
         mHolder = mSurface.getHolder();
         mHolder.addCallback(mSurfaceCallBack);
         mResizeAbleSurfaceView = findViewById(R.id.surfaceView);
+        flashLight = findViewById(R.id.flashLight);
         mSensorManager = (SensorManager) getApplicationContext().getSystemService(Activity.SENSOR_SERVICE);
         mSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);// TYPE_GRAV
 
@@ -374,7 +445,7 @@ private String TAG = "lylog";
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-        
+
     }
 
     @Override
